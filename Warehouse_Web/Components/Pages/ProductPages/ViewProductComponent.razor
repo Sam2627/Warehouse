@@ -1,0 +1,65 @@
+﻿@page "/products"
+@rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
+@inject IProductUseCase ProductUseCase
+@inject ICategoryUseCase CategoryUseCase
+
+<h3>Products</h3>
+<br />
+@if (products != null)
+{
+    <table class="table">
+        <thead>
+        <th>Product Category</th>
+        <th>Product Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th></th>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@CategoryUseCase.Get(product.CategoryId.Value).Name</td>
+                    <td>@product.Name</td>
+                    <td>@(Math.Round(product.Price.Value, 2))</td>
+                    <td>@product.Quantity</td>
+                    <td>
+                        <button type="button" class="btn btn-link" @onclick="@(() => OnEditProduct(product))">Edit</button>
+                        &nbsp;
+                        <button type="button" class="btn btn-link" @onclick="@(() => OnDeleteProduct(product.ProductId))">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<br />
+<button type="button" class="btn btn-primary" @onclick="OnClickAddProduct">Add Product</button>
+
+@code {
+    private IEnumerable<Product> products;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        products = ProductUseCase.GetAll();
+    }
+
+    private void OnClickAddProduct()
+    {
+        NavigationManager.NavigateTo("/addproduct");
+    }
+
+    private void OnEditProduct(Product product)
+    {
+        NavigationManager.NavigateTo($"/editproduct/{product.ProductId}");
+    }
+
+    private void OnDeleteProduct(int productId)
+    {
+        ProductUseCase.Delete(productId);
+    }
+
+}

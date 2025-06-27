@@ -1,0 +1,90 @@
+﻿@page "/sell"
+@rendermode InteractiveServer
+
+@using Warehouse_Web.Components.Layout
+
+<div class="row">
+    <div class="col-7">
+        <h3>Sell Product Console</h3>
+    </div>
+    
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="col-2">
+                    <label for="cashier">Cashier Name</label>
+                </div>
+                <div class="col-3">
+                    <div class="form-group">
+                        <input id="cashier" type="text" class="form-control" @bind-value="employeeName" />
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+</div>
+<br />
+<div class="row">
+    <div class="col-4">
+        <SelectProductForSellingComponent OnProductSelected="SelectProduct"></SelectProductForSellingComponent>
+        <br />
+        <SellProductComponent SelectedProduct="selectedProduct" OnProductSold="SellProduct" EmployeeId="@employeeId" EmployeeName="@employeeName"></SellProductComponent>
+    </div>
+    <div class="col">
+        <TodayTransactionsComponent @ref="transactionComponent"></TodayTransactionsComponent>
+    </div>
+</div>
+
+@code {
+
+    private Product selectedProduct;
+
+    private string employeeId = "testuser";
+    private string employeeName = "TestUser";
+
+    private TodayTransactionsComponent transactionComponent;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? _authState { get; set; }
+
+    private AuthenticationState? authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_authState != null)
+        {
+            authState = await _authState;
+            employeeId = authState.User.Identity.Name;
+            employeeName = authState.User.Identity.Name;
+        }
+
+        //authState = await _authState;
+        //employeeId = authState.User.Identity.Name;
+        //employeeName = authState.User.Identity.Name;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            transactionComponent.LoadTransactions(employeeName);
+        }
+    }
+
+    private void SelectProduct(Product product)
+    {
+        selectedProduct = product;
+    }
+
+    private void SellProduct(Product product)
+    {
+        transactionComponent.LoadTransactions(employeeName);
+        //StateHasChanged();
+    }
+
+    private async Task SellProductAsync()
+    {
+        await transactionComponent.LoadTransactionsAsync(employeeName);
+    }
+}
+

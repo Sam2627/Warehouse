@@ -1,0 +1,92 @@
+﻿@using Microsoft.AspNetCore.Components.Forms
+
+@inject IProductUseCase ProductUseCase
+
+@if (productOrder != null)
+{
+    <EditForm Model="productOrder" OnValidSubmit="AddToOrderProduct">
+        <Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator></Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator>
+        <Microsoft.AspNetCore.Components.Forms.ValidationSummary></Microsoft.AspNetCore.Components.Forms.ValidationSummary>
+        <div class="form-group">
+            <label for="name">Product Name</label>
+            <input id="name" class="form-control" type="text" readonly value="@productOrder.Name" />
+        </div>
+        <div class="form-group">
+            <label for="quantity">Quantity</label>
+            <InputNumber id="quantity" @bind-Value="@productOrder.Quantity"></InputNumber>
+        </div>
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input id="price" class="form-control" type="text" readonly value="@(string.Format("{0:c}", productOrder.Price))" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add to Order</button>
+    </EditForm>
+    <br />
+    @if (!string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+}
+
+@code {
+
+    private string errorMessage = string.Empty;
+
+    [Parameter]
+    public string EmployeeId { get; set; }
+
+    [Parameter]
+    public string EmployeeName { get; set; }
+
+    [Parameter]
+    public Product SelectedProduct { get; set; }
+
+    private InputProductModel productOrder;
+
+    [Parameter]
+    public EventCallback<InputProductModel> OnProductOrder { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (SelectedProduct != null)
+        {
+            productOrder = new InputProductModel
+            {
+                ProductId = SelectedProduct.ProductId,
+                Name = SelectedProduct.Name,
+                Quantity = 1,
+                Price = SelectedProduct.Price
+            };
+        }
+        else
+        {
+            productOrder = null;
+        }
+    }
+
+    private void AddToOrderProduct()
+    {
+        if (string.IsNullOrWhiteSpace(EmployeeName))
+        {
+            errorMessage = "Cashier's name is missing!";
+        }
+
+        var product = ProductUseCase.Get(productOrder.ProductId);
+        if (productOrder.Quantity <= 0)
+        {
+            errorMessage = "The quantity has to be greater than 0.";
+        }
+        else if (product.Quantity >= productOrder.Quantity)
+        {
+            // Call the event callback to notify the parent component
+            OnProductOrder.InvokeAsync(productOrder);
+            errorMessage = String.Empty;
+        }
+        else
+        {
+            errorMessage = $"{product.Name} only has {product.Quantity} left.";
+        }
+    }
+}

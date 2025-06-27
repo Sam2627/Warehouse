@@ -1,0 +1,72 @@
+﻿@inject IProductUseCase ProductUseCase
+
+@if (ListProductOrder != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in ListProductOrder)
+            {
+                <tr>
+                    <td>@order.Name</td>
+                    <td>@order.Price</td>
+                    <td>@order.Quantity</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => RemoveOrder(order)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+    [Parameter]
+    public string EmployeeId { get; set; }
+
+    [Parameter]
+    public string EmployeeName { get; set; }
+
+    public List<InputProductModel> ListProductOrder { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ListProductOrder = new List<InputProductModel>();
+    }
+
+    public void LoadListOrder()
+    {
+        StateHasChanged();
+    }
+
+    private void RemoveOrder(InputProductModel product)
+    {
+        if (ListProductOrder != null && ListProductOrder.Contains(product))
+        {
+            ListProductOrder.Remove(product);
+            StateHasChanged();
+        }
+    }
+
+    private void PlaceOrder()
+    {
+        if (ListProductOrder != null)
+        {
+            foreach(var product in ListProductOrder)
+            {
+                ProductUseCase.Sell(product.ProductId, product.Quantity.Value, EmployeeId, EmployeeName);
+            }
+            ListProductOrder.Clear();
+            StateHasChanged();
+        }
+    }
+}

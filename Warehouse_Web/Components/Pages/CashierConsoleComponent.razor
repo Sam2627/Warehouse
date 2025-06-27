@@ -1,0 +1,85 @@
+﻿@page "/cashier/sell"
+@rendermode InteractiveServer
+
+@using Warehouse_Web.Components.Layout
+
+<div class="row">
+    <div class="col-7">
+        <h3>Cashier Console</h3>
+    </div>
+    <div class="col-2">
+        <label for="cashier">Cashier Name</label>
+    </div>
+    <CascadingAuthenticationState>
+        <AuthorizeView>
+            <NotAuthorized>
+                <div class="col-3">
+                    <div class="form-group">
+                        <input id="cashier" type="text" class="form-control" @bind-value="employeeName" />
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </CascadingAuthenticationState>
+</div>
+<br />
+<div class="row">
+    <div class="col-4">
+        <CashierSelectProductComponent OnProductSelected="SelectProduct"></CashierSelectProductComponent>
+        <br />
+        <CashierAddProductComponent SelectedProduct="selectedProduct" OnProductOrder="OrderProduct" EmployeeId="@employeeId" EmployeeName="@employeeName"></CashierAddProductComponent>
+    </div>
+    <div class="col">
+        <CashierOrderProductComponent @ref="listProductOrderComponent" EmployeeId="@employeeId" EmployeeName="@employeeName"></CashierOrderProductComponent>
+    </div>
+</div>
+
+@code {
+
+    private Product selectedProduct;
+
+    private InputProductModel productOrder = new();
+
+    private string employeeId;
+
+    private string employeeName = "Test";
+
+    private CashierOrderProductComponent listProductOrderComponent;
+
+    //[CascadingParameter]
+    //private Task<AuthenticationState> _authState { get; set; }
+
+    //private AuthenticationState authState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //authState = await _authState;
+        //employeeId = authState.User.Identity.Name;
+        //employeeName = authState.User.Identity.Name;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            //transactionComponent.LoadTransactions(employeeName);
+        }
+    }
+
+    // Send selected product to the add product component
+    private void SelectProduct(Product product)
+    {
+        selectedProduct = product;
+    }
+
+    // Get product information and add to order list
+    private void OrderProduct(InputProductModel product)
+    {
+        productOrder = product;
+        listProductOrderComponent.ListProductOrder.Add(product);
+        listProductOrderComponent.LoadListOrder();
+
+    }
+}
+

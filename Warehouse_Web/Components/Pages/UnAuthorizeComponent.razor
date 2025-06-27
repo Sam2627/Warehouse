@@ -1,0 +1,39 @@
+﻿@page "/unauthorized"
+@using Warehouse_Web.Components.Layout
+@rendermode InteractiveServer
+@layout GuestLayout
+
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<h3 style="a">Not Authorized</h3>
+
+<CascadingAuthenticationState>
+    <AuthorizeView Context="ViewContext">
+        <Authorized>
+
+        </Authorized>
+        <NotAuthorized>
+
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+<div class="form-group col">
+    <a class="" onclick="history.back();" style="margin-right:20px; cursor:pointer">Go Back</a>
+    <button class="btn btn-primary" @onclick="GoBack" style="margin-right:20px">Go Back</button>
+    <button class="btn btn-primary" @onclick="GoHome">Go Home</button>
+</div>
+
+
+@code {
+    private void GoBack()
+    {
+        JSRuntime.InvokeVoidAsync("history.back");
+    }
+
+    private void GoHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

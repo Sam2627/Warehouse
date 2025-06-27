@@ -1,0 +1,25 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Warehouse_Web.Data
+
+@inject NavigationManager Navigation
+@inject UserManager<ApplicationUser> UserManager
+
+<AuthorizeView>
+    <Authorized>
+        <a href="/Account/Manage">Hello, @UserManager.GetUserAsync(@context.User).Result.Name !!</a>
+        <form action="Account/Logout" method="post">
+            <AntiforgeryToken />
+            <input type="hidden" name="ReturnUrl" value="" />
+            <button type="submit" class="btn btn-link nav-link">Logout</button>
+        </form>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/Account/Register">Register</a>
+        <a href="/Account/Login">Login</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+}

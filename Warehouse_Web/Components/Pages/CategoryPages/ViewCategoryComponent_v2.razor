@@ -1,0 +1,86 @@
+﻿@page "/categories/v2"
+@rendermode InteractiveServer
+
+@using Warehouse_UseCases.Interfaces
+
+@inject NavigationManager NavigationManager
+@inject ICategoryUseCase CategoryUseCase
+
+<a style="color:red">Bug: save button of this row apply change of other row</a>
+<br />
+<a style="color:red">STEP: change category in row 1&2, click save in row 1</a>
+<br />
+<h3>Magane Categories v2</h3>
+@if (categories != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var category in categories)
+            {
+                <tr>
+                    <td style="width:300px">
+                        <input type="text" @bind-value="@category.Name"/>
+                    </td>
+                    <td style="width:300px">
+                        <input type="text" @bind-value="@category.Description" />
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary" @onclick="@(() => SaveCategory(category, category.CategoryId))">Save</button>
+                        
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+<br />
+<button type="button" class="btn btn-primary" @onclick="OnClickAddCategory">Add Category</button>
+
+@code {
+    private List<Category> categories;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        LoadCategories();
+    }
+
+    private void OnClickAddCategory()
+    {
+        NavigationManager.NavigateTo("/addcategory");
+    }
+
+    private void EditCategory(Category category)
+    {
+        NavigationManager.NavigateTo($"/editcategory/{category.CategoryId}");
+    }
+
+    private void EditCategoryV2(Category category)
+    {
+        NavigationManager.NavigateTo($"/editcategory/edit");
+    }
+
+    private async Task DeleteCategory(int categoryId)
+    {
+        CategoryUseCase.Delete(categoryId);
+        LoadCategories();
+    }
+
+    private void LoadCategories()
+    {
+        categories = CategoryUseCase.GetAll();
+    }
+
+    private void SaveCategory(Category category, int categoryId)
+    {
+        CategoryUseCase.Update(category, categoryId);
+        
+    }
+}

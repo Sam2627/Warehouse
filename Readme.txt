@@ -1,0 +1,41 @@
+Test@123
+
+Nuget:
+- Microsoft.EntityFrameworkCore
+- Microsoft.EntityFrameworkCore.SqlServer
+- Microsoft.EntityFrameworkCore.Tools
+- Microsoft.EntityFrameworkCore.Design
+
+- Add Scaffolding
+
+Add-Migration Init -Context ApplicationDbContext
+Update-Database -Context ApplicationDbContext
+Remove-Migration -Context ApplicationDbContext
+
+Add-Migration Init -Context WarehouseDbContext
+Update-Database -Context WarehouseDbContext
+Remove-Migration -Context WarehouseDbContext
+
+printarea:
+MainLayout.razor.css
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #printarea, #printarea * {
+        visibility: visible;
+    }
+
+    #printarea {
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
+
+Some bug note:
+- ViewCategoryComponent_v2.razor: save button of this row apply change of other row (UNFIXED)
+- SellProductComponent.razor: wrong process step: transactions list is not updated after sale (FIXED)
+

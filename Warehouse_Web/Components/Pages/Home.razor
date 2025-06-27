@@ -1,0 +1,38 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Identity
+@using Warehouse_Web.Components.Layout
+@using Warehouse_Web.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider GetAuthenticationStateAsync
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+<br />
+This is: <b><u><i>@userName</i></u></b>
+
+@code{
+    private string userName = "Test Guest";
+
+    private LoginDisplay loginDisplay;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var authstate = await GetAuthenticationStateAsync.GetAuthenticationStateAsync();
+        var user = authstate.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            userName = "Guest";
+            return;
+        }
+        else
+        {
+            var user3 = UserManager.GetUserAsync(user).Result.Name;
+            userName = user3;
+        }
+        
+    }
+}
