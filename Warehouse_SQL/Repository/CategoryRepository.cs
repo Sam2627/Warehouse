@@ -54,7 +54,7 @@ namespace Warehouse_SQL.Repository
 
         public void Update(Category category, int categoryId)
         {
-            var cat = db.Categories.Find(categoryId);
+            var cat = db.Categories.FirstOrDefault(x => x.CategoryId == categoryId);
             if (cat == null) return;
 
             cat.Name = category.Name;

@@ -1,0 +1,220 @@
+﻿@page "/transactions/v2"
+@rendermode InteractiveServer
+<!-- attribute [Authorize(Policy = "AdminOnly")] -->
+
+@inject IJSRuntime JSRuntime
+@inject ITransactionUseCase GetTransactionsUseCase
+
+<div class="row">
+    <div class="col-2">
+        <label for="cashier">Staff Name</label>
+        <input id="cashier" class="form-control" type="text" @bind-value="employeeName" />
+    </div>
+    <div class="col-3">
+        <label for="startDate">Start Date</label>
+        <input id="startDate" class="form-control" type="date" @bind-value="startDate" />
+    </div>
+    <div class="col-3">
+        <label for="endDate">End Date</label>
+        <input id="endDate" class="form-control" type="date" @bind-value="endDate" />
+    </div>
+    <div class="col-2">
+        <label>&nbsp;</label>
+        <button type="button" class="btn btn-primary" @onclick="LoadTransactions">Search</button>
+    </div>
+    <div class="col-2">
+        <label>&nbsp;</label>
+        <button type="button" class="btn btn-primary" @onclick="PrintReport">Print</button>
+    </div>
+</div>
+<br />
+@if (transactions != null)
+{
+    <div id="printarea">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Staff Name</th>
+                    <th>Product Name</th>
+                    <th>Quantity In Stock</th>
+                    <th>Quantity Sold</th>
+                    <th>Quantity After Sold</th>
+                    <th>Price</th>
+                    <th>Sold Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var trans in showTransactions)
+                {
+                    @if (trans != null)
+                    {
+                        <tr>
+                            <td>@trans.TimeStamp.ToString("dd-MM-yyyy hh:mm")</td>
+                            <td>@trans.EmployeeName</td>
+                            <td>@trans.ProductName</td>
+                            <td>@trans.StockQuantity</td>
+                            <td>@trans.SellQuantity</td>
+                            <td>@(trans.StockQuantity - trans.SellQuantity)</td>
+                            <td style="text-align:right">@(string.Format("{0:c}", trans.Price))</td>
+                            <td style="text-align:right">@(string.Format("{0:c}", trans.SellQuantity * trans.Price))</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="6">&nbsp;</td>
+                    <td style="text-align:right">
+                        <b>Grand Total:</b>
+                    </td>
+                    <td style="text-align:right">
+                        <b>@(string.Format("{0:c}", transactions.Sum(x => x.Price * x.SellQuantity)))</b>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="pagination">
+        <a @onclick="PreviousPage">&laquo;</a>
+        <!-- Show pages 1 when in page 4 -->
+        @if (MaxPages == 4 && CurrentPage == 4)
+        {
+            <a class="px-2" @onclick="() => ShowPage(1)">1</a>
+        }
+        <!-- Show pages 1 & 2 when in page 5 -->
+        else if (MaxPages == 5 && CurrentPage == 5)
+        {
+            <a class="px-2" @onclick="() => ShowPage(1)">1</a>
+            <a class="px-2" @onclick="() => ShowPage(2)">2</a>
+        }
+        <!-- Show 5 pages with current page in middle -->
+        @for (int i = CurrentPage - 2; i <= (CurrentPage + 2); i++)
+        {
+            if (i > MaxPages) break;
+            int j = i;
+            @if (i > 0 )
+            {
+                if (i == CurrentPage)
+                {
+                    <a class="px-2 active" style="font-weight:bold; cursor:pointer" @onclick="() => ShowPage(j)">@i</a>
+                }
+                else
+                {
+                    <a class="px-2" style="cursor:pointer" @onclick="() => ShowPage(j)">@i</a>
+                }
+            }
+        }
+        <!-- Show pages 4 & 5 when in pages 1 or 2 if it can-->
+        @if (MaxPages >= 5)
+        {
+            @if (CurrentPage == 1)
+            {
+                <a class="px-2" @onclick="() => ShowPage(4)">4</a>
+                <a class="px-2" @onclick="() => ShowPage(5)">5</a>
+            }
+            else if (CurrentPage == 2)
+            {
+                <a class="px-2" @onclick="() => ShowPage(5)">5</a>
+            }
+        }
+        else if (MaxPages == 4)
+        {
+            @if (CurrentPage == 1)
+            {
+                <a class="px-2" @onclick="() => ShowPage(4)">4</a>
+            }
+        }
+        <a @onclick="NextPage">&raquo;</a>
+    </div>
+}
+
+@code {
+    private string employeeName = string.Empty;
+
+    private DateTime startDate;
+
+    private DateTime endDate;
+
+    private IEnumerable<GoodsTransaction> transactions;
+
+    private List<GoodsTransaction> showTransactions = new List<GoodsTransaction>();
+
+    private int CurrentPage = 1;
+
+    private int MaxPages;
+
+    private readonly int transactionPerPage = 10;
+
+    protected override void OnInitialized()
+    {
+        startDate = DateTime.Today;
+        endDate = DateTime.Today;
+    }
+
+    private void LoadTransactions()
+    {
+        CurrentPage = 1;
+        transactions = GetTransactionsUseCase.Search(employeeName, startDate, endDate);
+        // Set max page
+        MaxPages = (transactions.Count() - 1) / transactionPerPage + 1;
+        showTransactions.Clear();
+        for (int i = 0; i < transactionPerPage; i++)
+        {
+            showTransactions.Add(transactions.ElementAtOrDefault(i));
+        }
+    }
+    
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+        {
+            CurrentPage = CurrentPage - 2;
+            showTransactions.Clear();
+            for (int i = 0; i < transactionPerPage; i++)
+            {
+                int index = (CurrentPage * transactionPerPage) + i;
+                showTransactions.Add(transactions.ElementAtOrDefault(index));
+            }
+            CurrentPage++;
+        }
+    }
+
+    private void NextPage()
+    {
+        if (CurrentPage < MaxPages)
+        {
+            showTransactions.Clear();
+            for (int i = 0; i < transactionPerPage; i++)
+            {
+                int index = (CurrentPage * transactionPerPage) + i;
+                showTransactions.Add(transactions.ElementAtOrDefault(index));
+            }
+            CurrentPage++;
+        }
+    }
+
+    private void ShowPage(int curPage)
+    {
+        UpdateShowTransactions(curPage);
+        CurrentPage = curPage;
+    }
+
+    private void UpdateShowTransactions(int page)
+    {
+        int index;
+        page--;
+        showTransactions.Clear();
+        for (int i = 0; i < transactionPerPage; i++)
+        {
+            index = (page * transactionPerPage) + i;
+            showTransactions.Add(transactions.ElementAtOrDefault(index));
+        }
+    }
+
+    private void PrintReport()
+    {
+        JSRuntime.InvokeVoidAsync("print");
+    }
+
+}
